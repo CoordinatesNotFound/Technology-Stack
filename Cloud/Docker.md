@@ -283,7 +283,113 @@ https://blog.csdn.net/thinkwon/article/details/107476886
 
 
 
+### 4.1 容器数据卷概念
+
+- 目的
+  - 容器的持久化和同步操作
+  - 容器之间数据共享
+
+
+
+### 4.2 使用命令挂载容器数据卷
+
+- `docker run -it -v <主机目录>:<容器内目录>` 挂载容器数据卷
+- `docker volume ls` 查看所有容器数据卷
+- `docker volume inspect`
+
+
+
+### 4.4 具名挂载和匿名挂载
+
+- 匿名挂载：不指定主机目录和卷名（`-v <容器内目录>`）
+- 具名挂载：指定容器数据卷名字（`-v <卷名>:<容器内目录>`），但不指定主机目录
+- 所有的容器数据卷，没有指定主机目录的情况下都在`/var/lib/docker/volumes/xxx/_data`目录下
+
+> 【容器数据卷权限】
+>
+> `-v <容器内目录> [ro]/[rw]`
+>
+> - `ro` 只读（只能通过宿主机写，容器内部不能写）
+> - `rw` 可读可写（默认）
+
+
+
+### 4.5 使用Dockerfile挂载容器数据卷
+
+- 指定容器数据卷后，生成镜像后自动挂载
+
+```dockerfile
+# DockerFile
+
+FROM centos
+
+VOLUME ["volume01", "volume02"] # 匿名挂载
+
+CMD echo "----end----"
+
+CMD /bin/bash
+```
+
+- 假设构建镜像时没有挂载卷，要手动镜像内挂载
+
+
+
+### 4.6 数据卷容器
+
+- `--volumes-from <镜像名>` 共享某个镜像的数据卷
+- 删掉其中一个镜像，不影响其他数据卷，因为所有数据卷本质上都是指向宿主机的同一块内存
+
+
+
 ## 5 Dockerfile
+
+
+
+### 5.1 Dockerfile概念
+
+- DockerFile是用来构建镜像的文件，是一个命令参数脚本
+- 构建步骤
+  1. 编写一个DockerFile文件
+  2. docker build构建成为一个镜像
+  3. docker run运行镜像
+  4. docker push发布镜像
+
+
+
+### 5.2 Dockerfile镜像构建过程
+
+- 基本原则：每个保留关键字必须是大写字母
+
+- 执行从上到下顺序执行，每一个指令都会创建提交一层镜像层
+
+- #表示注释
+
+- `docker build -f <Dockerfile文件路径> -t <镜像名>[:tag] <上下文路径>`
+
+  
+
+
+
+### 5.3 Dockerfile指令
+
+> 官方指令文档：https://docs.docker.com/engine/reference/builder/
+
+```shell
+FROM		# 基础镜像
+MAINTAINER	# 镜像作者（姓名+邮箱）
+RUN		# 镜像构建需要的命令
+ADD		# 叠加内容
+WORKDIR		# 镜像的工作目录
+VOLUME		# 挂载的目录
+EXPOSE		# 暴露端口
+CMD		# 指定这个容器启动的时候要运行的命令，只有最后一个会生效，可被docker run的参数替代
+ENTRYPONIT	# 指定这个容器启动时要运行的命令，可以追加命令
+ONBUILD		# 当构建一个被继承DockerFile，触发
+COPY			# 类似ADD，将文件拷贝到镜像中
+ENV		# 构建的时候设置环境变量
+```
+
+
 
 
 
@@ -291,7 +397,70 @@ https://blog.csdn.net/thinkwon/article/details/107476886
 
 
 
-## 7 Docker服务编排
+### 6.1 Docker0
+
+- 基本原理
+  - 容器启动时会有一个docker分配的网络地址，只要电脑上安装了docker，就会有一个网卡docker0（桥接模式），使用的技术为evth-pair技术
+  - evth-pair技术：就是一对虚拟设备接口，成对出现，一段连着协议，一段彼此相连
+  - 宿主机能ping通容器，容器之间能ping通
 
 
 
+### 6.2 通过link进行容器互联
+
+- `docker run --link <容器名>` 互联（本质上在hosts配置中添加了映射）
+
+
+
+### 6.3 自定义网络容器互联
+
+> 【网络模式】
+>
+> - `bridge` 桥接模式
+> - `none` 不配置网络
+> - `host` 和宿主机共享网络
+> - `container` 容器网络联通
+
+- `docker network create <网络名>`
+
+  ```shell
+  # 可选项
+  --driver <网络模式>
+  --subnet	<子网>
+  --gateway	<网关>
+  ```
+
+- `docker network connect <网络名> <容器名>`
+
+
+
+
+
+## 7 Docker-compose容器编排
+
+
+
+### 7.1 Compose概念
+
+- Docker-Compose 是Docker官方的开源项目，负责实现对Docker容器集群的快速编排
+- 允许用户通过一个单独的docker-compose.yml模版文件来定义一组相关联的应用容器为一个项目
+- 核心要素
+  - 服务：一个一个应用容器实例
+  - 工程：由一组关联的应用容器组成的一个完整业务单元
+
+
+
+
+
+### 7.2 Compose使用步骤
+
+- 步骤
+  1. 编写Dockerfile定义各个微服务
+  2. 使用docker-compose.yml定义一个完整业务单元，安排好整体应用中的各个容器
+  3. 执行`docker-compose up`启动运行整个应用程序，完成一键部署上线
+
+
+
+### 7.3 Compose命令
+
+- 官方文档：https://docs.docker.com/compose/compose-file/03-compose-file/
