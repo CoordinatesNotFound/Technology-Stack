@@ -13,3 +13,13 @@
 ## 2 Documentation
 
 [Kubernetes Documentation | Kubernetes](https://kubernetes.io/docs/home/)
+
+
+
+## 3 Tool
+
+- Kind: 
+  - [kind](https://kind.sigs.k8s.io/)
+- Kuberctl:
+  - [Command line tool (kubectl) | Kubernetes](https://kubernetes.io/docs/reference/kubectl/)
+  - [kubectl Cheat Shee t | Kubernetes](https://kubernetes.io/docs/reference/kubectl/cheatsheet/)
