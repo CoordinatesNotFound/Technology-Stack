@@ -98,7 +98,7 @@ UA = User Agent, MSA = Mail Submission Agent, MTA = Mail Transfer Agent, MDA = M
 
 [Unicast Addresses > IPv6 Address Representation and Address Types | Cisco Press](https://www.ciscopress.com/articles/article.asp?p=2803866&seqNum=4)
 
-[RFC 4291](http://ftp.funet.fi/rfc/rfc4291.txt)
+[RFC 4291- IP Version 6 Addressing Architecture](http://ftp.funet.fi/rfc/rfc4291.txt)
 
 
 
