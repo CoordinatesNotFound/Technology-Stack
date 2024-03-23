@@ -132,3 +132,98 @@ UA = User Agent, MSA = Mail Submission Agent, MTA = Mail Transfer Agent, MDA = M
 ### 5.3 Pi-hole DNS sinkhole
 
 [Overview of Pi-hole - Pi-hole documentation](https://docs.pi-hole.net/)
+
+
+
+## 6 Encrypted Filesystems
+
+
+
+### 6.1 Linux filesystems
+
+[Linux filesystems introduction](https://tldp.org/LDP/intro-linux/html/intro-linux.html#chap_03)
+
+
+
+### 6.2 Encryption methods
+
+- Stacked filesystem encryption:
+  - eCryptfs
+  - gocryptfs 
+  - EncFS.
+- Block device encryption:
+  - loop-AES
+  - dm-crypt
+  - TrueCrypt/VeraCrypt
+
+
+
+### 6.3 Encrypted filesystem tools
+
+| Tool          | Usage                                                        | Doc                                                          |
+| ------------- | ------------------------------------------------------------ | ------------------------------------------------------------ |
+| GnuPG (`gpg`) | `gpg` is the OpenPGP part of the GNU Privacy Guard (GnuPG). It is a tool to provide digital encryption and signing services using the OpenPGP standard. | [GPG(1)](https://www.gnupg.org/documentation/manuals/gnupg24/gpg.1.html) |
+| ` losetup`    | setting up and controlling loopback device                   | `man 8 losetup`                                              |
+| `cryptsetup`  | to conveniently setup dm-crypt managed device-mapper mappings | `man 8 cryptsetup`<br />[Encrypted filesystems, loop devices, cryptsetup – Jérôme Belleman](https://jeromebelleman.gitlab.io/posts/filesystems/cryptsetup/) |
+| `gocryptfs`   | file encryption                                              | [gocryptfs/Documentation/MANPAGE.md at master · rfjakob/gocryptfs](https://github.com/rfjakob/gocryptfs/blob/master/Documentation/MANPAGE.md) |
+| `veracrypt`   | hidden volume - plausible deniability                        | [VeraCrypt On the Command Line for Ubuntu Linux – Arcane Code](https://arcanecode.com/2021/06/21/veracrypt-on-the-command-line-for-ubuntu-linux/)<br />[VeraCrypt - Free Open source disk encryption with strong security for the Paranoid](https://www.veracrypt.fr/en/Documentation.html) |
+
+
+
+## 7 Network Filesystems
+
+
+
+### 7.1 Network filesystem tools
+
+| Tool   | Usage                                                        | Doc                                                          |
+| ------ | ------------------------------------------------------------ | ------------------------------------------------------------ |
+| NFS    | Sharing files between Linux/Unix machines on a local network | [Linux NFS faq](https://nfs.sourceforge.net/)                |
+| Samba  | Sharing files and printers between Linux and Windows machines on a local network | [Samba - opening windows to a wider world](https://www.samba.org/) |
+| sshfs  | Securely sharing files between remote Linux/Unix machines over the internet | [libfuse/sshfs: A network filesystem client to connect to SSH servers](https://github.com/libfuse/sshfs) |
+| WebDAV | Collaboratively editing and managing files on remote web servers | [WebDAV Resources](http://www.webdav.org/)                   |
+
+
+
+## 8 Firewall
+
+
+
+### 8.1 Firewall
+
+[What Is a Firewall? - Cisco](https://www.cisco.com/c/en/us/products/security/firewalls/what-is-a-firewall.html)
+
+
+
+### 8.2 Firewall solutions
+
+| Solution  | Usage                                 | Doc                                                          |
+| --------- | ------------------------------------- | ------------------------------------------------------------ |
+| `route`   | IP routing                            | `man 8 route`                                                |
+| Nfttables | Setting firewall rules                | [Nftables documentation](https://netfilter.org/projects/nftables/) |
+| Squid     | Cache-proxy as an extend for firewall | [Squid documentation](https://web.archive.org/web/20161123064052/http:/www.deckle.co.uk/squid-users-guide/) |
+
+
+
+
+
+
+
+## 9 VPN
+
+
+
+### 9.1 VPN
+
+[What Is a Virtual Private Network (VPN)? - Cisco](https://www.cisco.com/c/en/us/products/security/vpn-endpoint-security-clients/what-is-vpn.html)
+
+
+
+### 9.2 OpenVPN
+
+[OpenVPN HOWTO](http://openvpn.net/index.php/open-source/documentation/howto.html)
+
+[How to Create Keys](https://www.digitalocean.com/community/tutorials/how-to-set-up-an-openvpn-server-on-ubuntu-18-04)
+
+
+

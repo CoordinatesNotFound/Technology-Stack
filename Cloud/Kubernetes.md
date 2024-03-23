@@ -1,7 +1,6 @@
-# Kubernates
+# Kubernetes
 
-
-
+```
 ## 1 Intro
 
 [What is Kubernetes? | DigitalOcean](https://www.digitalocean.com/community/tutorials/an-introduction-to-kubernetes)
@@ -36,3 +35,15 @@
   - Krew 
     - Intro: Krew is the plugin manager for `kubectl` command-line tool
     - Guide: [User Guide · Krew](https://krew.sigs.k8s.io/docs/user-guide/)
+```
+
+
+
+## 1 Kubernetes Basic
+
+
+
+### 1.1 Cluster Architecture
+
+- Master
+- Worker Nodes
