@@ -1,6 +1,6 @@
 # Knowledge Base
 
-YiNan's Knowledge Base, to become a better dev engineer.
+YiNan's Knowledge Base, to be come a better engineer & explorer.
 
 
 
