@@ -10,11 +10,17 @@ Structure of Knowledge Base:
 ```
 .
 ├── Cloud
-│   ├── CI:CD.md
-│   ├── Docker.md
-│   ├── Google Cloud.md
-│   ├── Kubernetes.md
-│   ├── Terraform.md
+│   ├── CICD
+│   │   └── GitLab CICD.md
+│   ├── Cloud Providers
+│   │   └── Google Cloud.md
+│   ├── Configuration Management
+│   │   └── Ansible.md
+│   ├── Container
+│   │   ├── Docker.md
+│   │   └── Kubernetes.md
+│   ├── Infrastructure Provisioning
+│   │   └── Terraform.md
 │   └── Tool List.md
 ├── Database
 │   ├── MongoDB.md
@@ -54,7 +60,10 @@ Structure of Knowledge Base:
 │   └── Wireshark.md
 ├── Version Control
 │   └── Git.pdf
+├── Web
+│   ├── Web Assembly.md
+│   └── Web Dev.md
 └── update.sh
 
-16 directories, 31 files
+22 directories, 34 files
 ```

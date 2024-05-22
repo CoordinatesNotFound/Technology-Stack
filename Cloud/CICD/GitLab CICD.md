@@ -1,8 +1,4 @@
-# CI/CD
-
-
-
-## Gitlab CI/CD
+# GitLab CICD
 
 [Get started with GitLab CI/CD | GitLab](https://docs.gitlab.com/ee/ci/)
 
