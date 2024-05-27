@@ -714,127 +714,171 @@
 
 ### 2.9 Multiple Schedulers
 
-- Deploy Additional Schedulers as Pods
-  ```yaml
-  apiVersion: v1
-  kind: Pod
-  metadata:
-  	name: my-custom-scheduler
-  	namespace: kube-system
-  spec:
-  	containers:
-  		- command:
-  				- kube-scheduler
-  				- --address=127.0.0.1
-  				- --kubeconfig=/etc/kubernetes/scheduler.conf
-  				- --leader-elect=true
-  			image: k8s.gcr.io/kube-scheduler-amd64:v1.11.3
-  			name: my-custom-scheduler
-  ```
+- Deploy Multiple Schedulers
 
-- Deploy Additional Schdulers as Deployments with features
-  ```yaml
-  apiVersion: v1
-  kind: ServiceAccount
-  metadata:
-    name: my-scheduler
-    namespace: kube-system
-  ---
-  apiVersion: rbac.authorization.k8s.io/v1
-  kind: ClusterRoleBinding
-  metadata:
-    name: my-scheduler-as-kube-scheduler
-  subjects:
-  - kind: ServiceAccount
-    name: my-scheduler
-    namespace: kube-system
-  roleRef:
-    kind: ClusterRole
-    name: system:kube-scheduler
-    apiGroup: rbac.authorization.k8s.io
-  ---
-  apiVersion: v1
-  kind: ConfigMap
-  metadata:
-    name: my-scheduler-config
-    namespace: kube-system
-  data:
-    my-scheduler-config.yaml: | # schduler as a profile
-      apiVersion: kubescheduler.config.k8s.io/v1beta2
-      kind: KubeSchedulerConfiguration
-      profiles:
-        - schedulerName: my-scheduler
-      leaderElection:
-        leaderElect: false    
-  ---
-  apiVersion: rbac.authorization.k8s.io/v1
-  kind: ClusterRoleBinding
-  metadata:
-    name: my-scheduler-as-volume-scheduler
-  subjects:
-  - kind: ServiceAccount
-    name: my-scheduler
-    namespace: kube-system
-  roleRef:
-    kind: ClusterRole
-    name: system:volume-scheduler
-    apiGroup: rbac.authorization.k8s.io
-  ---
-  apiVersion: apps/v1
-  kind: Deployment
-  metadata:
-    labels:
-      component: scheduler
-      tier: control-plane
-    name: my-scheduler
-    namespace: kube-system
-  spec:
-    selector:
-      matchLabels:
+  - Deploy Schedulers as Binaries
+
+    ```bash
+    wget "https://storage.googleapis.com/kubernetes-release/release/v1.12.0/bin/linux/amd64/kube-scheduler"
+    
+    chmod +x kube-scheduler 
+    sudo mv kube-scheduler /usr/local/bin/
+    sudo mv kube-scheduler.kubeconfig /var/lib/kubernetes/
+    
+    cat <<EOF | sudo tee /etc/kubernetes/config/kube-scheduler.yaml
+    apiVersion: componentconfig/v1alpha1
+    kind: KubeSchedulerConfiguration
+    clientConnection:
+      kubeconfig: "/var/lib/kubernetes/kube-scheduler.kubeconfig"
+    leaderElection:
+      leaderElect: true
+    EOF
+    
+    cat <<EOF | sudo tee /etc/systemd/system/kube-scheduler.service
+    [Unit]
+    Description=Kubernetes Scheduler
+    Documentation=https://github.com/kubernetes/kubernetes
+    
+    [Service]
+    ExecStart=/usr/local/bin/kube-scheduler \\
+      --config=/etc/kubernetes/config/kube-scheduler.yaml \\
+      --v=2
+    Restart=on-failure
+    RestartSec=5
+    
+    [Install]
+    WantedBy=multi-user.target
+    EOF
+    
+    
+    sudo systemctl daemon-reload
+    sudo systemctl enable kube-scheduler
+    sudo systemctl start kube-scheduler
+    ```
+
+  - Deploy Additional Schedulers as Pods
+
+    ```yaml
+    apiVersion: v1
+    kind: Pod
+    metadata:
+    	name: my-custom-scheduler
+    	namespace: kube-system
+    spec:
+    	containers:
+    		- command:
+    				- kube-scheduler
+    				- --address=127.0.0.1
+    				- --kubeconfig=/etc/kubernetes/scheduler.conf
+    				- --leader-elect=true
+    			image: k8s.gcr.io/kube-scheduler-amd64:v1.11.3
+    			name: my-custom-scheduler
+    ```
+
+  - Deploy Additional Schdulers as Deployments with features
+
+    ```yaml
+    apiVersion: v1
+    kind: ServiceAccount
+    metadata:
+      name: my-scheduler
+      namespace: kube-system
+    ---
+    apiVersion: rbac.authorization.k8s.io/v1
+    kind: ClusterRoleBinding
+    metadata:
+      name: my-scheduler-as-kube-scheduler
+    subjects:
+    - kind: ServiceAccount
+      name: my-scheduler
+      namespace: kube-system
+    roleRef:
+      kind: ClusterRole
+      name: system:kube-scheduler
+      apiGroup: rbac.authorization.k8s.io
+    ---
+    apiVersion: v1
+    kind: ConfigMap
+    metadata:
+      name: my-scheduler-config
+      namespace: kube-system
+    data:
+      my-scheduler-config.yaml: | # schduler as a profile
+        apiVersion: kubescheduler.config.k8s.io/v1beta2
+        kind: KubeSchedulerConfiguration
+        profiles:
+          - schedulerName: my-scheduler
+        leaderElection:
+          leaderElect: false    
+    ---
+    apiVersion: rbac.authorization.k8s.io/v1
+    kind: ClusterRoleBinding
+    metadata:
+      name: my-scheduler-as-volume-scheduler
+    subjects:
+    - kind: ServiceAccount
+      name: my-scheduler
+      namespace: kube-system
+    roleRef:
+      kind: ClusterRole
+      name: system:volume-scheduler
+      apiGroup: rbac.authorization.k8s.io
+    ---
+    apiVersion: apps/v1
+    kind: Deployment
+    metadata:
+      labels:
         component: scheduler
         tier: control-plane
-    replicas: 1
-    template:
-      metadata:
-        labels:
+      name: my-scheduler
+      namespace: kube-system
+    spec:
+      selector:
+        matchLabels:
           component: scheduler
           tier: control-plane
-          version: second
-      spec:
-        serviceAccountName: my-scheduler
-        containers:
-        - command:
-          - /usr/local/bin/kube-scheduler
-          - --config=/etc/kubernetes/my-scheduler/my-scheduler-config.yaml
-          image: gcr.io/my-gcp-project/my-kube-scheduler:1.0
-          livenessProbe:
-            httpGet:
-              path: /healthz
-              port: 10259
-              scheme: HTTPS
-            initialDelaySeconds: 15
-          name: kube-second-scheduler
-          readinessProbe:
-            httpGet:
-              path: /healthz
-              port: 10259
-              scheme: HTTPS
-          resources:
-            requests:
-              cpu: '0.1'
-          securityContext:
-            privileged: false
-          volumeMounts:
+      replicas: 1
+      template:
+        metadata:
+          labels:
+            component: scheduler
+            tier: control-plane
+            version: second
+        spec:
+          serviceAccountName: my-scheduler
+          containers:
+          - command:
+            - /usr/local/bin/kube-scheduler
+            - --config=/etc/kubernetes/my-scheduler/my-scheduler-config.yaml
+            image: gcr.io/my-gcp-project/my-kube-scheduler:1.0
+            livenessProbe:
+              httpGet:
+                path: /healthz
+                port: 10259
+                scheme: HTTPS
+              initialDelaySeconds: 15
+            name: kube-second-scheduler
+            readinessProbe:
+              httpGet:
+                path: /healthz
+                port: 10259
+                scheme: HTTPS
+            resources:
+              requests:
+                cpu: '0.1'
+            securityContext:
+              privileged: false
+            volumeMounts:
+              - name: config-volume
+                mountPath: /etc/kubernetes/my-scheduler
+          hostNetwork: false
+          hostPID: false
+          volumes: # mount the condig-volume
             - name: config-volume
-              mountPath: /etc/kubernetes/my-scheduler
-        hostNetwork: false
-        hostPID: false
-        volumes: # mount the condig-volume
-          - name: config-volume
-            configMap:
-              name: my-scheduler-config
-  
-  ```
+              configMap:
+                name: my-scheduler-config
+    
+    ```
 
 - Use Custom Scheduler
 
@@ -844,6 +888,7 @@
   ```
 
 - View Events
+
   ```bash
   kubectl get events -o wide
   ```
@@ -980,7 +1025,7 @@
 >   - dockerfile & command
 >     ```dockerfile
 >     FROM ubuntu
->         
+>             
 >     CMD ["sleep", "5"]
 >     ```
 >
@@ -1005,9 +1050,9 @@
 > - run an ubuntu image with command & default argument
 >   ```dockerfile
 >   FROM ubuntu
->     
+>       
 >   ENTRYPOINT ["sleep"]
->     
+>       
 >   CMD ["5"]
 >   ```
 >
@@ -1254,3 +1299,149 @@
     ```
 
     > You can configure multiple such initContainers as well, like how we did for multi-containers pod. In that case each init container is run **one at a time in sequential order**.
+
+
+
+## 5 Cluster Maintanence
+
+
+
+### 5.1 OS Upgrades
+
+- Pod Eviction Time
+
+  - After a node comes down, the pods on it will not be terminated within the Pod Eviction Time
+
+  - If the node comes back within Pod Eviction Time, the pods will come back
+  - If the node comes back after Pod Eviction Time, the pods in replica set will be created on other node, while others will be terminated
+
+- Drain a Node
+
+  - Terminate the pods on a node gracefully and recreate them on other nodes
+  - The node is cordoned or marked as unschedulable
+  - Command
+    - `kubectl drain <node> --ignore-daemonsets`
+
+- Cordon/Uncorden
+
+  - Cordon
+    - Mark a node as unschedulable
+    - `kubectl cordon <node>`
+  - Uncordon
+    - Mark a node as schedulable
+    - `kubectl uncordon <node>`
+
+- OS Upgrades
+
+  - If one pod is critical, when doing OS upgrades of some node, we don't want to drain it forcefully and cause the pod to be dead
+
+
+
+### 5.2 Cluster Upgrade Process
+
+- Kubernetes Release Versions
+
+  - `v1.11.3`
+    - Major version
+    - Minor version
+      - features
+      - functions
+    - Patch version
+      - bug fixes
+  - Control plane components have their own versions
+    - The components versions cannot be higher than api-server's, except for kubectl
+    - Go one minor version up at one time
+    - Allowed combination of kubernetes binary versions:
+
+      - kube-apiserver - version X
+      - controller-manager - version X-1
+      - kube-scheduler - version X-1
+      - kubelet - version X-2
+      - kube-proxy - version X-2
+      - kubectl - version X+1 > X-1
+
+- Cluster Upgrade
+
+  - Three scenerios
+
+    - Cluster set up with cloud providers (e.g. Gooogle): upgrade with a click
+    - Cluster set up with tools: upgrade with apply and plan
+    - Cluster set up from scratch: upgrade each component
+
+  - Upgrading process
+
+    1. Upgrade master nodes
+       - Master down, without impacting workers' (service) running
+    2. Upgrade worker nodes
+       - Strategy 1: upgrade all nodes at one time
+       - Strategy 2: upgrade one node at one time
+       - Strategy 3: create new node with new version, move pods to new node and remove old one
+
+  - Kubeadm Upgrade
+
+    1. Upgrade master node: [Upgrading kubeadm clusters | Kubernetes](https://v1-29.docs.kubernetes.io/docs/tasks/administer-cluster/kubeadm/kubeadm-upgrade/)
+       ```bash
+       kubectl drain controlplane
+       
+       ...
+       
+       kubectl uncordon controlplane
+       ```
+
+    2. Upgrade worker nodes (one at a time): [Upgrading Linux nodes | Kubernetes](https://v1-29.docs.kubernetes.io/docs/tasks/administer-cluster/kubeadm/upgrading-linux-nodes/)
+       ```bash
+       kubectl drain <node>
+       
+       ssh <node>
+       
+       ...
+       
+       exit
+       
+       kubectl uncordon <node>
+       ```
+
+       
+
+    
+
+### 5.3 Backup and Restore
+
+- Backup Resource Configurations
+
+  - Backup all pods, deployments, services
+
+    ```
+    kubectl get all --all-namespaces -o yaml > all-deploy-svc.yaml
+    ```
+
+  - Other tools...
+
+- Bakcup & Restore ETCD
+
+  - [Operating etcd clusters for Kubernetes | Kubernetes](https://kubernetes.io/docs/tasks/administer-cluster/configure-upgrade-etcd/)
+
+  ```bash
+  ETCDCTL_API=3 etcdctl snapshot save snapshot.db \
+  --endpoints=https://127.0.0.1:2379 \
+  --cacert=/etc/etcd/ca.crt \
+  --cert=/etc/etcd/etcd-server.crt \
+  --key=/etc/etcd/etcd-server.key
+  
+  ETCDCTL_API=3 etcdctl snapshot status snapshot.db
+  
+  ETCDCTL_API=3 etcdctl snapshot restore snapshot.db \
+  --data-dir /var/lib/etcd-from-backup \
+  
+  # edit /etc/kubernetes/manifests.yaml
+  ```
+
+  
+
+
+
+
+
+
+
+> 129, 135
