@@ -1436,7 +1436,308 @@
   # edit /etc/kubernetes/manifests.yaml
   ```
 
-  
+
+
+
+
+
+
+## 6 Security
+
+
+
+### 6.1 Kubernetes Security Primitives
+
+- Secure Hosts
+  - Password based authentication disabled
+  - SSH Key based authentication enabled
+- Authentication
+  - Concept
+    - Who can access?
+  - Methods
+    - Files - username and password
+    - Files - username and tokens
+    - Certificates
+    - External Authentication providers - LDAP
+    - Service Accounts
+- Authorization
+  - Concept
+    - RBAC Authorization
+    - ABAC Authorization
+    - Node Authorization
+    - Webhook Mode
+- TLS Certificates
+  - Secure the communication among components of controlplane
+
+
+
+### 6.2 Authentication
+
+- Types of Access
+  - Users
+    - developers
+    - admins
+  - Service Accounts (bots)
+- Auth Mechanisms
+  - specify the auth-file in kube-apiserver config
+  - use correct password/token/... to access kube-apiserver
+
+
+
+### 6.3 TLS
+
+- TLS Basics
+
+  - Symmetric Encryption
+    - Password/Token/...
+  - Asymmetric Encryption (e.g. SSH Authentication)
+    - Private key
+      - id_rsa: to access the server
+    - Public key
+      - id_rsa.pub: to lock the server
+  - Certificates
+    - guarantee trust between two parties in communication
+    - should be signed by Certificate Authority (CA)
+    - CA
+      - well-known organizations that can sign and validate your certificates for you
+      - make sure you are the actual owner of some domain and can be trusted by browser
+      - use private keys to sign the certificate, and browser use public key to validate the certificate
+      - process of certificate request
+        1. certificate signing request (CSR)
+        2. validate information
+        3. sign and send certificate
+    - 3 type of certificates
+      - root certificate
+        - to ensure children certificates' identity
+      - server certificate
+        - to ensure server's identity
+      - client certificate
+        - to ensure client identity
+  - Security Consideration
+    - The asymmetric encryption can be used to transfer symmetric keys securely, the symmetric encryption can be used to secure the following communication
+    - Certificates signed by CA used to validate the identity of both servers and clients
+    - all infrastructure known as PKI
+
+- TLS in Kubernetes
+
+  - CA Certificates
+    - two for clients & servers
+
+  - Server Certificates
+    - kube-apiserver
+      - apiserver.crt
+      - apiserver.key
+    - etcd-servcer
+      - etcdserver.crt
+      - etcdserver.key
+    - kubelet-server
+      - kubelet-server.crt
+      - kubelet-server.key
+  - Client Certificates
+    - admin
+      - admin.crt
+      - admin.key
+    - scheduler
+      - scheduler.crt
+      - scheduler.key
+    - kube-controller-manager
+      - controller-manager.crt
+      - controller-manager.key
+    - kube-proxy
+      - kube-proxy.crt
+      - kube-proxy.key
+    - kubelet
+      - kubelet-client.crt
+      - kubelet-client.key
+    - kube-apiserver (to the etcd-server)
+      - apiserver-etcd-client.crt
+      - apiserver-etcd-client.key
+    - kube-apiserver (to the kubelet)
+      - apiserver-kubelet-client.crt
+      - apiserver-kubelet-client.key
+
+- Certificate Creation
+
+  - Generate CA Certificate
+
+    1. Generate keys
+       ```bash
+       openssl genrsa -out ca.key 2048
+       ```
+
+    2. Certificate signing request
+       ```bash
+       openssl req -new -key ca.key -subj "/CN=KUBERNETES-CA" -out ca.csr
+       ```
+
+    3. Sign Certificates
+
+       ```bash
+       openssl x509 -req -in ca.csr -signkey ca.key -out ca.crt
+       ```
+
+  - Generate Certificate for Admin User (Client/Server)
+
+    1. Generate Keys
+       ```bash
+       openssl genrsa -out admin.key 2048
+       ```
+
+    2. Certificate signing request
+
+       ```bash
+       openssl req -new -key admin.key -subj "/CN=kube-admin" -out admin.csr
+       ```
+
+    3. Sign Certificates
+
+       ```bash
+       # signed with CA key pair
+       openssl x509 -req -in admin.csr -CA ca.crt -CAkey ca.key -out admin.crt
+       ```
+
+  - Generate Certificate for Kube-Apiserver
+
+    1. Generate Keys
+       ```bash
+       openssl genrsa -out apiserver.key 2048
+       ```
+
+    2. Certificate signing request
+       ```bash
+       openssl req -new -key apiserver.key -subj "/CN=kube-apiserver" -out apiserver.csr -config openssl.cnf
+       ```
+
+- View Certificate Details
+
+  - Perform a health check of all certificates in cluster
+
+    - Cluster built with kubeadm
+
+      ```bash
+      cat /etc/kubernetes/manifests/kube-apiserver.yaml
+      ```
+
+    - Cluster built in hard way
+      ```bash
+      cat /etc/systemd/system/kube-apiserver.service 
+      ```
+
+  - Find more details in some certificate
+    ```bash
+    openssl x509 -in file-path.crt -text -noout
+    ```
+
+  - View logs
+    ```bash
+    kubectl logs etcd-master
+    ```
+
+
+
+### 6.4 Certificates API
+
+- CA Server
+
+  - A pair of keys and certificate files that have been generated, are stored securely in an environment
+  - Everytime you want to sign a certificate, you log in to that server
+
+- Certificates API
+
+  - No need to manually log in and sign the request
+
+  - Process
+
+    1. Create `CertificatesSigningRequest` object
+       ```bash
+       openssl genrsa -out xxx.key 2048
+       openssl req -new -key xxx.key -subj "/CN=xxx" -out xxx.csr
+       
+       cat <<EOF | kubectl apply -f -
+       apiVersion: certificates.k8s.io/v1
+       kind: CertificateSigningRequest
+       metadata:
+         name: my-svc.my-namespace
+       spec:
+         request: $(cat server.csr | base64 | tr -d '\n')
+         signerName: example.com/serving
+         usages:
+         - digital signature
+         - key encipherment
+         - server auth
+       EOF
+       
+       kubectl apply -f xxx.yaml
+       
+       ```
+
+    2. Review requests
+       ```bash
+       kubectl get csr
+       
+       kubectl describe csr xxx
+       ```
+
+    3. Approve requests
+       ```bash
+       kubectl certificate approve <csr_name>
+       
+       # kubectl certificate deny <csr_name>
+       ```
+
+    4. Share certs
+
+
+
+
+
+### 6.5 KubeConfig
+
+- KubeConfig File
+
+  - Defining the existing users to access exisiting clusters, `.kube/config`
+
+  - Structure
+
+    - Clusters
+    - Contexts
+    - Users
+
+    ```yaml
+    apiVersion: v1
+    kind: Config
+    
+    clusters:
+    - cluster:
+        proxy-url: http://proxy.example.org:3128
+        server: https://k8s.example.org/k8s/clusters/c-xxyyzz
+      name: development
+    
+    users:
+    - name: developer
+    
+    contexts:
+    - context:
+      name: development
+    ```
+
+  - View Config
+    ```bash
+    # view default config
+    kubectl config view
+    
+    # view non-default config
+    kubectl config --kubeconfig=/root/my-kube-config view
+    ```
+
+  - Change Current Context
+    ```bash
+    kubectl config use-context xxx_user@xxx_cluster
+    ```
+
+    
+
+
 
 
 
