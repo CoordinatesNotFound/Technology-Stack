@@ -343,7 +343,7 @@
 
 - Concept
 
-  - To isolate different set of kubernetes obects
+  - To isolate different set of kubernetes objects
 
 - Existing Namespaces
 
@@ -1025,7 +1025,7 @@
 >   - dockerfile & command
 >     ```dockerfile
 >     FROM ubuntu
->             
+>                 
 >     CMD ["sleep", "5"]
 >     ```
 >
@@ -1050,9 +1050,9 @@
 > - run an ubuntu image with command & default argument
 >   ```dockerfile
 >   FROM ubuntu
->       
+>         
 >   ENTRYPOINT ["sleep"]
->       
+>         
 >   CMD ["5"]
 >   ```
 >
@@ -1739,10 +1739,1277 @@
 
 
 
+### 6.6 API Groups
+
+- API Groups
+  - `core` group
+    - `/api`
+  - `named` group
+    - `/apis`
+      - Resources
+        - Verbs
+
+- kubectl proxy
+  - ACTP proxy service created by Kube control utility to access API server
+
+
+
+
+
+### 6.7 Authorization
+
+- Authorization Mode
+
+  - Modes
+
+    - Node
+      - Node Authorizer handles the Kubelet's requests
+
+    - ABAC
+    - RBAC
+    - Webhook
+      - Open Policy Agent
+    - AlwaysAllow
+    - AlwaysDeny
+
+  - Specified in `--authorization-mode`
+
+    - Multiple modes: handled in order of the chain
+
+- RBAC
+
+  - Role
+
+    - Role with YAML
+      ```yaml
+      apiVersion: rbac.authorization.k8s.io/v1
+      kind: Role
+      metadata:
+      	name: developer
+      rules:
+      - apiGroups: [""]
+      	resources: ["pods"]
+      	verbs: ["list", "get", "create", "update", "delete"]
+      - apiGroups: [""]
+      	resources: ["ConfigMap"]
+      	verbs: ["create"]
+      	resourceName: ["blue", "orange"]
+      ```
+
+    - Commands for Roles
+      ```bash
+      # create a role
+      kubectl create -f developer-role.yaml
+      
+      # lists roles
+      kubectl get roles
+      
+      # view a role
+      kubectl describe role developer
+      ```
+
+  - RoleBinding
+
+    - RoleBinding with YAML
+      ```yaml
+      apiVersion: rbac.authorization.k8s.io/v1
+      kind: RoleBinding
+      metadata:
+      	name: devuser-developer-binding
+      subjects:
+      - kind: User
+      	name: dev-user
+      	apiGroup: rbac.authorization.k8s.io
+      roleRef:
+      	kind: Role
+      	name: developer
+      	apiGroup: rbac.authorization.k8s.io
+      ```
+
+    - Commands for RoleBinding
+      ```bash
+      # list RBACs
+      kubectl get rolebindings
+      
+      # view a RBAC
+      kubectl describe rolebinding devuser-developer-binding
+      ```
+
+  - Check Access
+    ```bash
+    kubectl auth can-i create deployments
+    
+    kubectl auth can-i delete nodes
+    
+    # impersonate
+    kubectl auth can-i create deployments --as dev-user
+    ```
+
+
+
+
+### 6.8 Cluster Roles and RoleBindings
+
+- Namespaced and Cluster-scoped Resources
+
+  - Namespaced Resources
+
+    - Roles & RoleBindings
+    - Pods
+    - Deployments
+    - Services
+    - ...
+
+  - Cluster-scoped Resources
+
+    - ClusterRoles
+    - ClusterRoleBindings
+    - Nodes
+    - Namespaces
+
+    - ...
+
+  - Check whether is namespaced
+    ```bash
+    kubectl api-resources --namespaced=true/false
+    ```
+
+- ClusterRoles
+
+  - ClusterRole with YAML
+    ```yaml
+    apiVersion: rbac.authorization.k8s.io/v1
+    kind: ClusterRole
+    metadata:
+    	name: cluster-administrator
+    rules:
+    - apiGroups: [""]
+    	resources: ["nodes"]
+    	verbs: ["list", "get", "create", "delete"]
+    ```
+
+- ClusterRoleBindings
+
+  - ClusterRoleBinding with YAML
+    ```yaml
+    apiVersion: rbac.authorization.k8s.io/v1
+    kind: ClusterRoleBinding
+    metadata:
+    	name: cluster-admin-role-binding
+    subjects:
+    - kind: User
+    	name: cluster-admin
+    	apiGroup: rbac.authorization.k8s.io
+    roleRef:
+    	kind: ClusterRole
+    	name: cluster-administrator
+    	apiGroup: rbac.authorization.k8s.io
+    ```
+
+    > You can also create cluster role for namespaced resources (will across all namespaces)
+
+
+
+### 6.9 Service Accounts
+
+- Account Types
+  - User Account
+  - Service Account
+
+- ServiceAccount
+
+  - Commands For ServiceAccount
+    ```bash
+    # create
+    kubectl create serviceaccount dashboard-sa
+    
+    # list
+    kubectl get serviceaccount
+    
+    # view
+    kubectl describe serviceaccount dashboard-sa
+    
+    # create token for service account
+    kubectl create token dashboard-sa
+    ```
+
+  - Specify the ServiceAccount for Deployment
+    ```yaml
+    #...
+    spec:
+    	serviceAccountName: dashboard-sa
+    	containers:
+    #...
+    ```
+
+  - When a ServiceAccount created
+
+    1. create an account object
+    2. generates a token for the service account
+    3. create a secret object and store the token
+    4. app can use the token to access the cluster
+
+  > If the app is deployed on the cluster itself, the secret can be mounted as a volume inside the pod
+
+  - Default service account
+    - created automatically for each namespace
+    - has a default secret for pods
+    - only has permissions to run basic kube api
+
+
+
+
+
+### 6.10 Image Security
+
+- Image Name Structure
+
+  - `Registry/User/Image`
+    - e.g. `docker.io/library/nginx`
+
+- Private Repository
+
+  - Need to access with credentials
+
+    - Login with command line:
+      ```bash
+      docker login private-registry.io
+      ```
+
+    - Passing the credentials to the docker runtime (Login when creating pod with image):
+      ```bash
+      kubectl create secret docker-registry <secret-name> \
+        --docker-server=private-registry.io \
+        --docker-username=registry-user \
+        --docker-password=registry-password \
+        --docker-email=sregistry-user@org.com
+      ```
+
+      ```yaml
+      # ...
+      spec:
+      	containers:
+      	- name: nginx
+      		image: private-registry.io/apps/internal-app
+      	imagePullSecrets:
+      	- name: <secret-name>
+      ```
+
+    
+
+    
+
+    
+
+    
+
+### 6.11 Secruity Context
+
+> 【Docker Security】
+>
+> - Process Isolation
+>
+>   - From a container inside, run `ps aux` can only see the process inside the container
+>   - From the host, run `ps aux` can see many processes, because processes can have different process iDs in different namespaces
+>
+> - User Security
+>
+>   - default user: root
+>
+>   - specify the user: 
+>
+>     - `docker run xxx --user=user1`
+>
+>     - ```
+>       FROM ubuntu
+>       
+>       USER user1
+>       ```
+>
+>   - the root user inside container is not the same as the root user on the host, but permissions can be added
+>
+>     ```bash
+>     docker run xxx --cap-add MAC_ADMIN
+>     ```
+
+- Security Contexts
+
+  - Set Security Context in Pod Definition
+    ```yaml
+    #...
+    spec:
+    	containers:
+    		- name: ubuntu
+    			image: ubunutu
+    			command: ["sleep", "3600"]
+    			securityContext:
+    				runAsUser: 1000
+    				capabilities:
+    					add: ["MAC_ADMIN"]
+    ```
+
+    > Capabilities are only supported at the container level and not at the POD level
+
+
+
+
+
+### 6.12 Network Policy
+
+- Network Policy
+
+  - Selectors & Rules
+
+    - pod labels
+      ```yaml
+      # db pod
+      labels:
+      	role：db
+      ```
+
+    - pod selectors
+      ```bash
+      # rules: db-policy
+      podSelector:
+      	matchLabels:
+      		role: db
+      ```
+
+  - NetworkPolicy with YAML
+    ```yaml
+    # For db pod only allow ingress traffic from api-pod to 3306 port
+    apiVersion: networking.k8s.io/v1
+    kind: NetworkPolicy
+    metadata:
+    	name: db-policy
+    spec:
+    	podSelector: 
+    		matchLabels:
+    			role: db
+    	policyTypes:
+    		- Ingress
+    	Ingress:
+    	- from:
+    		- podSelector:
+    				matchLabels:
+    					name: api-pod
+    		ports:
+    		- protocol: TCP
+    			port: 3306
+    			
+    ```
+
+    > Not all network solutions support NetworkPolicy
+
+
+
+## 7 Storage
+
+> 【Docker Storage】
+>
+> - Storage Driver
+>
+>   - File System
+>
+>     - `/var/lib/docker` stores all data by default
+>
+>   - Layered Architecture
+>
+>     - Container Layer (Read Write, COPY-ON-WRITE)
+>     - Image Layers (Read Only)
+>       - Each line of instruction of Dockerfile add to a layer in the image
+>
+>   - Volumes
+>
+>     - Create a volume
+>       ```bash
+>       docker volume create data_volume
+>       ```
+>
+>     - Mount a volume
+>       ```bash
+>       docker run xxx -v data_volume:/var/lib/mysql
+>       ```
+>
+>   - Storage Drivers
+>
+>     - Maintaining the layed architecture
+>     - Common drivers
+>       - AUFS
+>       - ZFS
+>       - BTRFS
+>       - ...
+>
+> - Volume Drivers
+>   - Volume Driver Plugin
+>     - Handling the volume
+>     - Common drivers
+>       - Local
+>       - Azure File Storage
+>       - Convoy
+>       - ...
+> - Container Storage Interface (CSI)
+>   - Defines a set if RPC that can be called by container orchestrators
+
+
+
+### 7.1 Volumes
+
+- Volumes
+
+  - Concept
+
+    - Data of pod are transient in native
+    - Volumes are used to persist the data processed by pod
+
+  - Mounts
+    ```yaml
+    #...
+    # spec:
+    	containers:
+    		- image: alpine
+    			name: alpine
+    			volumeMounts:
+    			- mountPath: /opt
+    				name: data-volume
+    	
+    	volumes:
+    	- name:
+    		hostPath:
+    			path: /data
+    			type: Directory
+    ```
+
+    
+
+
+
+### 7.2 Persistent Volumes
+
+- Persistent Volumes
+
+  - PersistentVolume with YAML
+    ```yaml
+    apiVersion: v1
+    kind: PersistentVolume
+    metadata:
+      name: pv-vol1
+    spec:
+      accessModes:
+      	- ReadWriteOnce
+      capacity:
+      	storage: 1Gi
+      hostPath:
+      	path: /var/log/mysql
+        type: Directory
+      persistentVolumeReclaimPolicy: Delete
+    ```
+
+- Persistent Volume Claims
+
+  - Binding
+    - If the PersistentVolume exists and has not reserved PersistentVolumeClaims through its `claimRef` field, then the PersistentVolume and PersistentVolumeClaim will be bound.
+    - One to one binding between claims and volume
+
+  - PersistentvolumeClaim with YAML
+    ```yaml
+    apiVersion: v1
+    kind: PersistentVolumeClaim
+    metadata:
+      name: foo-pvc
+      namespace: default
+    spec:
+      accessModes:
+      	- ReadWriteOnce
+      resources:
+      	requests:
+      		storage: 500Mi
+    ```
+
+  - Using PVCs in Pods
+    ```yaml
+    # ...
+    	# spec:
+    		# containers:
+    		 # ...
+    		volumes:
+    			- name: mypd
+    				persistentVolumeClaim:
+    					claimName: myclaim
+    ```
+
+    
+
+
+
+### 7.2 Storage Class
+
+- StorageClass
+
+  - Concept
+
+    - Static Provisioning
+      - Manually created the storage for pod each time a claim is made
+    - Dynamic Provisioning
+      - With Storage Class, can define a provisioner, that can automatically provision storage ( e.g. Google Cloud) and attach that to pods when a claim is made
+
+  - StorageClass with YAML
+    ```yaml
+    apiVersion: storage.k8s.io/v1
+    kind: StorageClass
+    metaData:
+    	name: google-storage
+    provisioner: kubernetes.io/gce-pd
+    parameters: # specific to provisioners
+    	type: pd-standard
+    	replication-type: none
+    ```
+
+  - Using StorageClass in PVC definition
+    ```yaml
+    # ...
+    spec:
+    	# ...
+    	storageClassName: google-storage
+    ```
+
+    
 
 
 
 
 
 
-> 129, 135
+
+
+
+## 8 Networking
+
+> 【Networking】
+>
+> - Switching & Routing
+>
+>   - Switching: enable communication within a network
+>
+>   - Routing: enable communication between two networks
+>
+>   - Default Gateway: to the unknown or internet
+>
+>   - Linux Commands
+>     ```bash
+>     # list interfaces on the host
+>     ip link
+>     
+>     # see the ip addresses assigned to interfaces
+>     ip addr
+>     
+>     # set ip addresses on the interfaces
+>     ip add add 192.168.1.0/24 dev eth0
+>     
+>     # see the routing table
+>     ip route
+>     
+>     # add entries into the routing table
+>     ip route add 192.168.1.0/24 via 192.168.2.1
+>     
+>     # check if ip forwarding is enabled on a host (if the host works as a router)
+>     cat /proc/sys/net/ipv4/ip_forward
+>     ```
+>
+> - DNS
+>
+>   - Domain Names
+>
+>     - root
+>     - top level domain name
+>     - subdomain
+>
+>   - Record Types
+>
+>     - `A`: name -> ipv4 addr
+>     - `AAAA`: name -> ipv6 addr
+>     - `CNAME`: name -> another name
+>
+>   - Linux Commands
+>
+>     ```bash
+>     # define name resolution
+>     cat >> /etc/hosts
+>     
+>     # specify the dns server
+>     cat /etc/resolv.conf
+>     
+>     # lookup order
+>     cat /etc/nsswitch.conf
+>     ```
+>
+> - Network Namespaces
+>
+>   - Namespace
+>
+>     - Process Namespace
+>       - process isolation
+>     - Network Namespace
+>       - within the namespace, the container cannot access the network-related information on the host
+>
+>   - Linux Commands
+>
+>     ```bash
+>     # create network ns
+>     ip netns add <netns-name>
+>     
+>     # list network ns
+>     ip netns
+>     
+>     # exec in network ns
+>     ip netns exec <netns-name> ip link
+>     ip -n <netns-name> ip link
+>     ```
+>
+>   - Virtual Switch
+>     ```bash
+>     # create a linux bridge switch
+>     ip link add v-net-0 type bridge
+>     
+>     # bring the switch up
+>     ip link set dev v-net-0 up
+>     
+>     # creating cable
+>     ip link add veth-red type veth peer name veth-red-br
+>     ip link add veth-blue type veth peer name veth-blue-br
+>     
+>     # connect one end of the cable to ns
+>     ip link set veth-red netns red
+>     ip link set veth-red-br master v-net-0
+>     ip link set veth-blue netns red
+>     ip link set veth-blue-br master v-net-0
+>     
+>     # set the ip addr
+>     ip -n red addr add 192.168.15.1 dev veth-red
+>     ip -n blue addr add 192.168.15.2 dev veth-blue
+>     ip -n red link set veth-red up
+>     ip -n blue link set veth-red up
+>     
+>     # enable host to connect to within ns
+>     ip addr add 192.168.15.5/24 dev v-net-0
+>     
+>     # enable connecting to outside ns
+>     ip netns exec blue ip route add 192.168.1.0/24 via 192.168.15.5
+>     iptables -t nat -A POSTROUTING -s 192.168.15.0/24 -j MASQUERADE
+>     ```
+
+> 【Docker Network】
+>
+> - Network Mode
+>
+>   - None
+>     ```bash
+>     docker run --nertwork none nginx
+>     ```
+>
+>   - Host
+>     ```bash
+>     docker run --network host nginx
+>     ```
+>
+>   - Bridge
+>
+>     - with a interface `docker0`
+>
+>     ```bash
+>     docker run nginx 
+>     # 172.17.0.0/24 by default
+>     ```
+>
+> - CNI
+>
+>   - Container Runtime must create network namespace
+>   - Identify network the container must attach to
+>   - Container Runtime to Invoke Network Plugin (bridge) when container is ADDed
+>   - Container Runtime to Invoke Network Plugin (bridge) when container is DELETEd
+>   - JSON format of the Network Configuration
+>   - Bridge (Plugin)
+>     1. Create Bridge Network
+>     2. Create VETH Pairs
+>     3. Attach VETH to Namespace
+>     4. Attach Other VETH to Bridge
+>     5. Assign IP Addresses
+>     6. Bring the interfaces up
+>     7. Enable NAT - IP MASQURADE
+
+
+
+### 8.1 Clustering Networking
+
+- Networking in Kubernetes Cluster
+  - [Ports and Protocols | Kubernetes](https://kubernetes.io/docs/reference/networking/ports-and-protocols/)
+  - [Cluster Networking | Kubernetes](https://kubernetes.io/docs/concepts/cluster-administration/networking/)
+
+- Network Addon
+  - [Installing Addons | Kubernetes](https://kubernetes.io/docs/concepts/cluster-administration/addons/)
+
+> ```bash
+> # check internal ip
+> kubectl get nodes -o wide
+> ```
+
+
+
+### 8.2 Pod Networking
+
+- Networking Model
+
+  - Every Pod should have an IP address
+  - Every Pod should be able to communicate with every other Pod in the same node
+  - Every Pod should be able to communicate with every other Pod on other nodes without NAT
+
+- Network Scripts
+  ```
+  ADD)
+  
+  	# Create veth pair
+  	
+  	# Attach veth pair
+  	
+  	# Assign IP Address
+  	
+  	# Bring Up Interface
+  
+  DELETE)
+  	
+  	# ip link del ...
+  ```
+
+  - will be executed when a container is created
+
+
+
+### 8.3 K8s CNI
+
+- Configuring CNI
+  - Network Plugins are installed in `/opt/cni/bin`
+  - Which plugin to use & How to use it is condigured in `/etc/cni/net.d`
+
+- CNI Weave
+
+  - Deployed on a cluster, deploy an agent on each node that can communicate with each other to exchange info, storing topology of the setup
+
+  - Deploy
+    ```bash
+    kubectl apply -f https://github.com/weaveworks/weave/releases/download/v2.8.1/weave-daemonset-k8s.yaml
+    ```
+
+    
+
+### 8.4 IP Address Management
+
+- Assigning IP to Pods
+
+  - Responsible by CNI plugins
+    - host-local
+    - DHCP
+
+- IP range
+
+  - By default:
+
+    - 10.32.0.0/12
+
+  - Check the ip range by weave
+    ```bash
+    kubectl logs <weave-pod-name> -n kube-system
+    ```
+
+    
+
+
+
+
+
+### 8.5 Service Networking
+
+- Service Mechanism
+
+  - Services are cluster wide, across all nodes
+  - When a service is created, the ip address is assigned in a predefined range, and kube-proxy on each node creates a ip forwarding
+    - userspace
+    - iptables
+    - ipvs
+
+- Service IP range
+
+  - By default
+
+    - 10.244.0.0/16
+
+  - Check
+
+    ```bash
+    cat /etc/kubernetes/manifests/kube-apiserver.yaml | grep cluster-ip-range
+    ```
+
+    
+
+
+
+### 8.6 DNS in Kubernetes
+
+- CoreDNS
+  - Deployed as a ReplicaSet, can be accessed as Service
+  - Inside the CoreDNS pod, there is a configuration file `/etc/coredns/Corefile`
+    - Corefile is passed in to the CoreDNS as coredns ConfigMap  (config volume mounting)
+
+
+
+### 8.7 Ingress
+
+- Ingress
+
+  - Concept
+    - Helps users access applications using a single externally accessible URL that can be condigured to route to different services within the URL path
+    - Realize Load Balancing
+    - Execute SSL security
+  - Implementation
+    1. Deploy one of the supported solution
+       - Ingress Controller
+    2. Configure the rules
+       - Ingress Resources
+
+- Ingress Controller
+
+  - Solutions available
+    - NGINX
+    - Contour
+    - Istio
+    - GCP HTTP Load Balancer
+
+  - NGINX Deployment with YAML
+    ```yaml
+    apiVersion: extensions/v1beta1
+    kind: Deployment
+    metadata:
+    	name: nginx-ingress-controller
+    spec:
+    	replicas: 1
+    	selector:
+    	matchLabels:
+    		name: nginx-ingress
+    	template:
+    		metadata:
+    			labels:
+    				name: nginx-ingress
+    		spec:
+    			containers:
+    				- name: nginx-ingress-controller
+    					image: quay.io/kubernetes-ingresscontroller/nginx-ingress-controller:0.21.0
+    					args:
+    						- /nginx-ingress-controller
+    						- --configmap=$(POD_NAMESPACE)/nginx-configuration
+    					env:
+    						- name: POD_NAME
+    							valueFrom:
+    								fieldRef:
+    									fieldPath: metadata.name
+    						- name: POD_NAMESPACE
+    							valueFrom:
+    								fieldRef:
+    									fieldPath: metadata.namespace
+    					ports:
+    						- name: http
+    							containerPort: 80
+    						- name: https
+    							containerPort: 443
+    ```
+
+    - Service
+      ```yaml
+      apiVersion: v1
+      kind: Service
+      metadata:
+      	name: nginx-ingress
+      spec:
+      	type: NodePort
+      	ports:
+      		- port: 80
+      			targetPort: 80
+      			protocol: TCP
+      			name: http
+      		- port: 443
+      			targetPort: 443
+      			protocol: TCP
+      			name: https
+      	selector:
+      		name: nginx-ingress
+      ```
+
+    - ConfigMap
+      ```yaml
+      kind: ConfigMap
+      apiVersion: v1
+      metadata:
+      	name: nginx-configuration
+      ```
+
+    - Auth
+      ```yaml
+      apiVersion: v1
+      kind: ServiceAccount
+      metadata:
+      	name: nginx-ingress-serviceaccount
+      ```
+
+- Ingress Resources
+
+  - Ingress with YAML
+
+    - Split traffic by Path
+      ```yaml
+      apiVersion: networking.k8s.io/v1
+      kind: Ingress
+      metadata:
+        name: ingress-wear-watch
+        annotations:
+          nginx.ingress.kubernetes.io/rewrite-target: /
+      spec:
+        rules:
+        - http:
+            paths:
+            - path: /wear
+              pathType: Prefix
+              backend:
+                service:
+                  name: wear-service
+                  port:
+                    number: 80
+            - path: /watch
+              pathType: Prefix
+              backend:
+                service:
+                  name: watch-service
+                  port:
+                    number: 80
+      ```
+
+    - Split traffic by Hostname
+      ```yaml
+      apiVersion: networking.k8s.io/v1
+      kind: Ingress
+      metadata:
+        name: ingress-wear-watch
+        annotations:
+          nginx.ingress.kubernetes.io/rewrite-target: /
+      spec:
+        rules:
+        - host: wear.my-online-store.com
+        	http:
+            paths:
+            - backend:
+                service:
+                  name: wear-service
+                  port:
+                    number: 80
+        - host: watch.my-online-store.com
+        	http:
+            paths:
+            - backend:
+                service:
+                  name: watch-service
+                  port:
+                    number: 80
+      ```
+
+  - Commands for Ingress
+    ```bash
+    kubectl create ingress <ingress-name> --rule="host/path=service:port"
+    ```
+
+    
+
+## 9 Design and Install a Kubernetes Cluster
+
+
+
+### 9.1 Design a Kubernetes Cluster
+
+- Purpose
+
+  - Education
+    - Minikube
+    - Single node cluster with kubeadm/GCP/AWS
+  - Developments & Testing
+    - Multi-node cluster with a Single Master and Multiple workers
+    - Setup using kubeadm tool or quick provision on GCP or AWS or AKS
+
+- Cloud/OnPrem
+
+  - Cloud
+    - GKE for GCP
+    - Kops for AWS
+    - Azure Kubernetes Service(AKS) for Azure
+  - OnPrem
+    - Kubeadm
+
+- Storage
+
+  - High Performance – SSD Backed Storage 
+  - Multiple Concurrent connections – Network based storage 
+  - Persistent shared volumes for shared access across multiple PODs 
+  - Label nodes with specific disk types 
+  - Use Node Selectors to assign applications to nodes with specific disk types
+
+- Nodes
+
+  - Virtual or Physical Machines
+
+  - Master vs Worker Nodes
+
+    > Master nodes can host workloads but not recommended
+
+  - Linux x86_64 Architecture
+
+
+
+
+
+### 9.2 Choosing Kubernetes Infrastructure
+
+- On Laptop
+
+  - Minikube
+    - Deploys VMs
+    - Single Node Cluster
+  - Kubeadm
+    - Requires VMs to be ready
+    - Single/Multi Node Cluster
+
+- On Production Env
+
+  - Turnkey Solutions 
+
+    - You Provision VMs 
+
+    - You Configure VMs 
+
+    - You Use Scripts to Deploy Cluster 
+
+    - You Maintain VMs yourself 
+
+      > Eg: Kubernetes on AWS using KOPS 
+
+  - Hosted Solutions (Managed Solutions) 
+
+    - Kubernetes-As-A-Service 
+
+    - Provider provisions VMs 
+
+    - Provider installs Kubernetes 
+
+    - Provider maintains VMs 
+
+      > Eg: Google Container Engine (GKE)
+
+
+
+
+
+
+
+### 9.3 Configure High Availability
+
+- [Options for Highly Available Topology | Kubernetes](https://kubernetes.io/docs/setup/production-environment/tools/kubeadm/ha-topology/)
+
+
+
+### 9.4 Install Kubernetes the Kubeadm Way
+
+> [Bootstrapping clusters with kubeadm | Kubernetes](https://kubernetes.io/docs/setup/production-environment/tools/kubeadm/)
+
+- Steps
+
+  1. Provision VMs
+
+  2. Install Container Runtimer (Containerd)
+
+     > https://kubernetes.io/docs/setup/production-environment/tools/kubeadm/install-kubeadm/#installing-runtime
+
+  3. Install Kubeadm Tool
+
+     > https://kubernetes.io/docs/setup/production-environment/tools/kubeadm/install-kubeadm/#installing-kubeadm-kubelet-and-kubectl
+
+  4. Initialize Master Server
+
+     > https://kubernetes.io/docs/setup/production-environment/tools/kubeadm/create-cluster-kubeadm/#preparing-the-hosts
+
+  5. Set Up the Pod Network
+
+     > https://kubernetes.io/docs/setup/production-environment/tools/kubeadm/create-cluster-kubeadm/#pod-network
+
+  6. Join Node
+
+     > https://kubernetes.io/docs/setup/production-environment/tools/kubeadm/create-cluster-kubeadm/#join-nodes
+
+
+
+
+
+## 10 Troubleshooting
+
+
+
+### 10.1 Application Failure
+
+- Check Accessiblity
+  ```bash
+  curl http://<web-servive-ip>:<node-port>
+  ```
+
+- Check Service Status
+  ```bash
+  kubectl describe service web-service
+  ```
+
+- Check Pod
+  ```bash
+  kubectl get pod
+  
+  kubwctl describe pod web
+  
+  kubectl logs web -f --prev
+  ```
+
+- Others
+
+  - Check dependent service
+  - Check dependent application
+
+
+
+
+
+### 10.2 Control Plane Server
+
+- Check Controlplane Services
+  ```bash
+  service kube-apiserver status
+  
+  service kube-controller-manager status
+  
+  service kube-scheduler status
+  
+  service kubelet status
+  
+  service kube-proxy status
+  ```
+
+- Check Service Logs
+  ```bash
+  kubectl logs kube-apiserver-master -n kube-system
+  
+  sudo journalctl -u kube-apiserver
+  ```
+
+  
+
+
+
+### 10.3 Worker Node Failure
+
+- Check Node Status
+
+  ```bash
+  kubectl get nodes
+  
+  kubectl describe node worker-1
+  ```
+
+- Check Node
+  ```bash
+  top
+  
+  df -h
+  ```
+
+- Check Kubelet Status
+  ```bash
+  service kubelet status
+  
+  sudo journalctl -u kubelet
+  ```
+
+- Check Certificates
+  ```bash
+  openssl x509 -in /var/lib/kubelet/worker-1.crt -text
+  
+  # s/var/lib/kubelet/config.yaml
+  # /etc/kubernetes/kubelet.conf
+  ```
+
+  
+
+
+
+### 10.4 Network Troubleshooting
+
+- Check CoreDNS
+
+  1.  If you find **CoreDNS** pods in pending state first check network plugin is installed.
+
+  2. Coredns pods have **CrashLoopBackOff or Error state**
+
+  3. If **CoreDNS** pods and the **kube-dns** service is working fine, check the **kube-dns** service has valid **endpoints**.
+
+      ```bash
+      kubectl -n kube-system get ep kube-dns
+      ```
+
+- Check Kube-proxy
+  ```bash
+  kubectl describe ds kube-proxy -n kube-system
+  ```
+
+  1. Check **kube-proxy** pod in the **kube-system** namespace is running.
+  2. Check **kube-proxy** logs.
+  3. Check **configmap** is correctly defined and the config file for running **kube-proxy** binary is correct.
+  4. **kube-config** is defined in the **config map**.
+  5. check **kube-proxy** is *running* inside the container
+
+
+
+## 11 Other Topics
+
+
+
+### 11.1 JSON Path in Kubernetes
+
+- Kubectl and JSON
+
+  - Request to Kube-apiserver and get response in JSON format
+  - Make response to readable format and print out to screen
+
+- JSON Path in K8s
+  ```bash
+  kubectl get nodes -o=jsonpath='{.items[*].metadata.name}'
+  
+  kubectl get nodes -o=jsonpath='{.items[*].status.capacity.cpu}'
+  
+  kubectl get nodes -o=jsonpath='{.items[*].metadata.name}{"\n"}{.items[*].status.capacity.cpu}'
+  ```
+
+- Loops - Range
+  ```
+  '{range .items[*]}
+  	{.metadata.name} {"\t"} {.status.capacity.cpu}{"\n"}
+  {end}'
+  ```
+
+- Sort
+  ```bash
+  kubectl get nodes --sort-by=.status.capacity.cpu
+  ```
+
+  
+
+
+
+
+
