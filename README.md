@@ -24,15 +24,6 @@ Structure of Knowledge Base:
 ├── Database
 │   ├── MongoDB.md
 │   └── MySQL.md
-├── Language
-│   ├── Golang
-│   │   └── Golang.md
-│   ├── Java
-│   │   ├── Java Basic.md
-│   │   └── Java Deeper.md
-│   ├── Rust
-│   └── WebAssembluy
-│       └── WebAssembly.md
 ├── Network
 │   ├── Computer Networks.pdf
 │   ├── Networking Tools & Solutions.md
@@ -51,6 +42,25 @@ Structure of Knowledge Base:
 │   │   └── Blockchain.md
 │   └── Machine Learning
 │       └── Deep Reinforcement Learning.md
+├── Programming Language
+│   ├── Build System
+│   │   ├── Cargo.md
+│   │   ├── Make.md
+│   │   └── Meson.md
+│   ├── C & C++
+│   │   ├── C++.md
+│   │   └── C.md
+│   ├── Golang
+│   │   └── Golang.md
+│   ├── Java
+│   │   ├── Java Basic.md
+│   │   └── Java Deeper.md
+│   ├── Python
+│   │   └── Python.md
+│   ├── Rust
+│   │   └── Rust.md
+│   └── WebAssembly
+│       └── WebAssembly.md
 ├── README.md
 ├── Security
 │   └── Information Security.pdf
@@ -70,5 +80,5 @@ Structure of Knowledge Base:
 │   └── Git.md
 └── update.sh
 
-24 directories, 37 files
+27 directories, 44 files
 ```
