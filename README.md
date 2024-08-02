@@ -27,9 +27,12 @@ Structure of Knowledge Base:
 ├── Language
 │   ├── Golang
 │   │   └── Golang.md
-│   └── Java
-│       ├── Java Basic.md
-│       └── Java Deeper.md
+│   ├── Java
+│   │   ├── Java Basic.md
+│   │   └── Java Deeper.md
+│   ├── Rust
+│   └── WebAssembluy
+│       └── WebAssembly.md
 ├── Network
 │   ├── Computer Networks.pdf
 │   ├── Networking Tools & Solutions.md
@@ -52,12 +55,11 @@ Structure of Knowledge Base:
 ├── Security
 │   └── Information Security.pdf
 ├── System Design
-│   └── Designing and Building Scalable Web Applications.md
+│   └── Scalable System Design.md
 ├── Toolkit
 │   ├── Celery.md
 │   ├── FFmpeg.md
 │   ├── FastAPI.md
-│   ├── Gomonkey.md
 │   ├── Homebrew.md
 │   ├── RabbitMQ.md
 │   ├── Wireshark.md
@@ -66,10 +68,7 @@ Structure of Knowledge Base:
 │   └── gRPC.md
 ├── Version Control
 │   └── Git.md
-├── Web
-│   ├── Web Assembly.md
-│   └── Web Dev.md
 └── update.sh
 
-23 directories, 39 files
+24 directories, 37 files
 ```
