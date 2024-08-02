@@ -60,6 +60,8 @@ Structure of Knowledge Base:
 │   ├── Rust
 │   │   └── Rust.md
 │   └── WebAssembly
+│       ├── WASI.md
+│       ├── Wasmtime.md
 │       └── WebAssembly.md
 ├── README.md
 ├── Security
@@ -80,5 +82,5 @@ Structure of Knowledge Base:
 │   └── Git.md
 └── update.sh
 
-27 directories, 44 files
+27 directories, 46 files
 ```
