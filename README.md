@@ -1,6 +1,6 @@
 # Technology Stack
 
-YiNan's Technology Stack, to be come a better engineer & explorer.
+YiNan's Technology Stack, to be come a better engineer :)
 
 
 
