@@ -1,4 +1,4 @@
-sed -i "" '/Structure of Knowledge Base:/,$ {/Structure of Knowledge Base:/!d;}' README.md
+sed -i "" '/Structure of Technology Stack:/,$ {/Structure of Technology Stack:/!d;}' README.md
 
 { echo '```'; tree .; echo '```'; } >> README.md
 
