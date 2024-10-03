@@ -29,8 +29,11 @@ Structure of Technology Stack:
 │   ├── Networking Tools & Solutions.md
 │   └── Video Streaming.md
 ├── OS
-│   ├── Linux.md
-│   └── Operating System.pdf
+│   ├── Linux
+│   │   ├── Linux Command Line.md
+│   │   └── Linux.md
+│   └── OS Basics
+│       └── Operating System.pdf
 ├── Others
 │   ├── 5G
 │   │   └── 5G.md
@@ -82,5 +85,5 @@ Structure of Technology Stack:
 │   └── Git.md
 └── update.sh
 
-27 directories, 46 files
+29 directories, 47 files
 ```
