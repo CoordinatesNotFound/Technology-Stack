@@ -68,6 +68,7 @@ Structure of Technology Stack:
 │       └── WebAssembly.md
 ├── README.md
 ├── Security
+│   ├── Ethical Hacking.md
 │   └── Information Security.pdf
 ├── System Design
 │   └── Scalable System Design.md
@@ -85,5 +86,5 @@ Structure of Technology Stack:
 │   └── Git.md
 └── update.sh
 
-29 directories, 47 files
+29 directories, 48 files
 ```
