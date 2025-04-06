@@ -12,26 +12,28 @@ Structure of Technology Stack:
 ├── Cloud
 │   ├── CICD
 │   │   └── GitLab CICD.md
-│   ├── Cloud Providers
-│   │   └── Google Cloud.md
-│   ├── Configuration Management
-│   │   └── Ansible.md
-│   ├── Container
+│   ├── Cloud Native
 │   │   ├── Docker.md
 │   │   └── Kubernetes.md
-│   └── Infrastructure Provisioning
+│   ├── Cloud Platforms
+│   │   └── Google Cloud.md
+│   └── IaC
+│       ├── Ansible.md
 │       └── Terraform.md
 ├── Database
 │   ├── MongoDB.md
-│   └── MySQL.md
+│   ├── MySQL.md
+│   └── Redis.md
 ├── Network
 │   ├── Computer Networks.pdf
 │   ├── Networking Tools & Solutions.md
-│   └── Video Streaming.md
+│   ├── Video Streaming.md
+│   └── Wireshark.md
 ├── OS
 │   ├── Linux
 │   │   ├── Linux Command Line.md
-│   │   └── Linux.md
+│   │   ├── Linux.md
+│   │   └── eBPF.md
 │   └── OS Basics
 │       └── Operating System.pdf
 ├── Others
@@ -45,11 +47,7 @@ Structure of Technology Stack:
 │   │   └── Blockchain.md
 │   └── Machine Learning
 │       └── Deep Reinforcement Learning.md
-├── Programming Language
-│   ├── Build System
-│   │   ├── Cargo.md
-│   │   ├── Make.md
-│   │   └── Meson.md
+├── Programming Languages
 │   ├── C & C++
 │   │   ├── C++.md
 │   │   └── C.md
@@ -72,22 +70,28 @@ Structure of Technology Stack:
 │   └── Information Security.pdf
 ├── System Design
 │   └── Scalable System Design.md
-├── Toolkit
-│   ├── Celery.md
-│   ├── FFmpeg.md
-│   ├── FastAPI.md
-│   ├── Homebrew.md
-│   ├── RabbitMQ.md
-│   ├── Wireshark.md
-│   ├── YAML & JSON.md
-│   ├── eBPF.md
-│   └── gRPC.md
+├── Tools
+│   ├── Build & Package Management
+│   │   ├── Build Tools
+│   │   │   ├── Cargo.md
+│   │   │   ├── Make.md
+│   │   │   └── Meson.md
+│   │   └── Package Management
+│   │       └── Homebrew.md
+│   ├── Configuration Management
+│   │   ├── TOML.md
+│   │   └── YAML & JSON.md
+│   └── Messaging & Streaming
+│       ├── Kafka.md
+│       └── RabbitMQ.md
 ├── Version Control
 │   └── Git.md
 ├── Web Dev
+│   ├── FastAPI.md
 │   ├── NodeJS.md
-│   └── React.md
+│   ├── React.md
+│   └── gRPC.md
 └── update.sh
 
-30 directories, 50 files
+33 directories, 51 files
 ```
