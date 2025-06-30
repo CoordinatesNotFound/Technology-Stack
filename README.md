@@ -86,13 +86,11 @@ Structure of Technology Stack:
 │       └── RabbitMQ.md
 ├── Version Control
 │   └── Git.md
-├── Web Dev
-│   ├── FastAPI.md
-│   ├── Full Stack Development.md
-│   ├── NodeJS.md
-│   ├── React.md
-│   └── gRPC.md
-└── update.sh
+└── Web Dev
+    ├── Full Stack Development.md
+    ├── NodeJS.md
+    ├── React.md
+    └── gRPC.md
 
-33 directories, 52 files
+33 directories, 50 files
 ```
