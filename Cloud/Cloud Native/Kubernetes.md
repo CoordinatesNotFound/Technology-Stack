@@ -1025,7 +1025,7 @@
 >   - dockerfile & command
 >     ```dockerfile
 >     FROM ubuntu
->                 
+>                     
 >     CMD ["sleep", "5"]
 >     ```
 >
@@ -1050,9 +1050,9 @@
 > - run an ubuntu image with command & default argument
 >   ```dockerfile
 >   FROM ubuntu
->         
+>           
 >   ENTRYPOINT ["sleep"]
->         
+>           
 >   CMD ["5"]
 >   ```
 >
@@ -2022,7 +2022,7 @@
 >
 >     - ```
 >       FROM ubuntu
->       
+>           
 >       USER user1
 >       ```
 >
@@ -2299,19 +2299,19 @@
 >     ```bash
 >     # list interfaces on the host
 >     ip link
->     
+>       
 >     # see the ip addresses assigned to interfaces
 >     ip addr
->     
+>       
 >     # set ip addresses on the interfaces
 >     ip add add 192.168.1.0/24 dev eth0
->     
+>       
 >     # see the routing table
 >     ip route
->     
+>       
 >     # add entries into the routing table
 >     ip route add 192.168.1.0/24 via 192.168.2.1
->     
+>       
 >     # check if ip forwarding is enabled on a host (if the host works as a router)
 >     cat /proc/sys/net/ipv4/ip_forward
 >     ```
@@ -2335,10 +2335,10 @@
 >     ```bash
 >     # define name resolution
 >     cat >> /etc/hosts
->     
+>       
 >     # specify the dns server
 >     cat /etc/resolv.conf
->     
+>       
 >     # lookup order
 >     cat /etc/nsswitch.conf
 >     ```
@@ -2370,29 +2370,29 @@
 >     ```bash
 >     # create a linux bridge switch
 >     ip link add v-net-0 type bridge
->     
+>         
 >     # bring the switch up
 >     ip link set dev v-net-0 up
->     
+>         
 >     # creating cable
 >     ip link add veth-red type veth peer name veth-red-br
 >     ip link add veth-blue type veth peer name veth-blue-br
->     
+>         
 >     # connect one end of the cable to ns
 >     ip link set veth-red netns red
 >     ip link set veth-red-br master v-net-0
 >     ip link set veth-blue netns red
 >     ip link set veth-blue-br master v-net-0
->     
+>         
 >     # set the ip addr
 >     ip -n red addr add 192.168.15.1 dev veth-red
 >     ip -n blue addr add 192.168.15.2 dev veth-blue
 >     ip -n red link set veth-red up
 >     ip -n blue link set veth-red up
->     
+>         
 >     # enable host to connect to within ns
 >     ip addr add 192.168.15.5/24 dev v-net-0
->     
+>         
 >     # enable connecting to outside ns
 >     ip netns exec blue ip route add 192.168.1.0/24 via 192.168.15.5
 >     iptables -t nat -A POSTROUTING -s 192.168.15.0/24 -j MASQUERADE
@@ -3007,7 +3007,105 @@
   kubectl get nodes --sort-by=.status.capacity.cpu
   ```
 
-  
+
+
+
+### 11.2 Helm
+
+- Helm
+
+  - Concept
+
+    - Package/release manager for Kubernetes
+
+  - Commands
+    ```bash
+    helm install <package_name>
+    
+    helm upgrade <package_name>
+    
+    helm rollback <package_name>
+    
+    helm uninstall <package_name>
+    ```
+
+- Helm Components
+
+  - Helm cli
+    - Command line
+  - Chart
+    - Collection of files, containing all instructions that Helm needs to know to install objects in a cluster
+    - `values.yaml` stores the configurations
+  - Release
+    - A single installation of an application using a Helm chart
+    - Have multiple Revisions, each is a snapshot of the application
+  - Repository
+    - Store the charts
+  - Metadata
+    - Deployed as a Kubernetes Secret
+
+- Helm Charts
+
+  - Templates
+    - `templates/`
+  - Values configuration
+    - `values.yaml`
+  - Chart information
+    - `Chart.yaml`
+  - Chart License
+    - `LICENSE`
+
+- Deploy Helm Charts from Repository
+
+  - Add to local repo
+    ```bash
+    helm repo add <repo_name> <repo_link>
+    ```
+
+  - Install
+    ```bash
+    helm install <release_name> <repo_name>/<chart_name>
+    ```
+
+  - List all installed releases
+
+    ```bash
+    helm list
+    ```
+
+- Customize Chart Parameters
+
+  - In command line
+    ```bash
+    helm install --set key="value" <release_name> <repo_name>/<chart_name>
+    ```
+
+  - From a YAML file
+    ```bash
+    helm install --values custom-values.yaml <release_name> <repo_name>/<chart_name>
+    ```
+
+    ```yaml
+    # custom-values.yaml
+    
+    key: value
+    ```
+
+  - Helm Pull
+
+    1. Pull the chart
+       ```bash
+       helm pull --untar <repo_name>/<chart_name>
+       ```
+
+    2. Edit the `values.yaml`
+
+    3. Install
+       ```bash
+       helm install <release_name> <chart_path>
+       ```
+
+       
 
 
 

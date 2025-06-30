@@ -88,10 +88,11 @@ Structure of Technology Stack:
 │   └── Git.md
 ├── Web Dev
 │   ├── FastAPI.md
+│   ├── Full Stack Development.md
 │   ├── NodeJS.md
 │   ├── React.md
 │   └── gRPC.md
 └── update.sh
 
-33 directories, 51 files
+33 directories, 52 files
 ```
