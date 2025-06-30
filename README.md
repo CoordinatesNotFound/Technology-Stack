@@ -64,7 +64,6 @@ Structure of Technology Stack:
 │       ├── WASI.md
 │       ├── Wasmtime.md
 │       └── WebAssembly.md
-├── README.md
 ├── Security
 │   ├── Ethical Hacking.md
 │   └── Information Security.pdf
@@ -86,12 +85,11 @@ Structure of Technology Stack:
 │       └── RabbitMQ.md
 ├── Version Control
 │   └── Git.md
-├── Web Dev
-│   ├── Full Stack Development.md
-│   ├── NodeJS.md
-│   ├── React.md
-│   └── gRPC.md
-└── update.sh
+└── Web Dev
+    ├── Full Stack Development.md
+    ├── NodeJS.md
+    ├── React.md
+    └── gRPC.md
 
-33 directories, 51 files
+33 directories, 49 files
 ```
